@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>County Energy Forum - Registration</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .register-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-item input {
+            width: auto;
+            margin: 0;
+        }
+        .success-message {
+            display: none;
+            background: #4caf50;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .success-message h3 {
+            margin-top: 0;
+        }
+        .qr-code-container {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .qr-code-container img {
+            max-width: 300px;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .error-message {
+            display: none;
+            background: #f44336;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: #666;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+    </style>
+    <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>County Energy Forum - Registration</h1>
+    </header>
+    <main>
+        <div class="register-container">
+            <div id="successMessage" class="success-message">
+                <h3>✓ Registration Successful!</h3>
+                <p>Your QR code is below. Please save or print it.</p>
+                <div id="qrCodeContainer" class="qr-code-container"></div>
+                <p id="registrationId" style="margin-top: 1rem; font-size: 0.9rem; color: #2c5f3f;"></p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <div id="registrationForm" class="registration-form">
+                <div class="loading" id="loading">
+                    <p>Submitting your registration...</p>
+                </div>
+
+                <form id="form">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" required placeholder="e.g., John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" required placeholder="your.email@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organization">Organization/Institution *</label>
+                        <input type="text" id="organization" required placeholder="e.g., County Government">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Participant Category *</label>
+                        <select id="category" required>
+                            <option value="">--Select Category--</option>
+                            <option value="VVIP">VVIP (Cabinet Secretary, Speaker)</option>
+                            <option value="VIP">VIP (Members of Parliament, CEOs)</option>
+                            <option value="Delegate">Delegate (Technical Participant)</option>
+                            <option value="Media">Media/Press</option>
+                            <option value="Staff">Event Staff</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Accessibility Needs</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="wheelchairAccess" name="accessibility" value="wheelchair">
+                                <label for="wheelchairAccess" style="margin: 0; font-weight: normal;">Wheelchair Access</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="signLanguage" name="accessibility" value="signLanguage">
+                                <label for="signLanguage" style="margin: 0; font-weight: normal;">Sign Language</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="largeprint" name="accessibility" value="largeprint">
+                                <label for="largeprint" style="margin: 0; font-weight: normal;">Large Print</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="specialRequests">Special Requests (Optional)</label>
+                        <textarea id="specialRequests" placeholder="Any other needs or requests..."></textarea>
+                    </div>
+
+                    <button type="submit">Register Now</button>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>County Energy Forum - Admin</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>CEF Admin Dashboard</h1>
+        <button id="logoutBtn" style="display:none" onclick="auth.signOut()">Logout</button>
+    </header>
+    <main>
+        <!-- Login -->
+        <div id="loginForm" class="form-container">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword">
+            </div>
+            <div id="loginError" class="error-message"></div>
+            <button id="loginBtn">Login</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card"><span id="statTotal">0</span><label>Total</label></div>
+                <div class="stat-card"><span id="statPending">0</span><label>Pending</label></div>
+                <div class="stat-card"><span id="statApproved">0</span><label>Approved</label></div>
+                <div class="stat-card"><span id="statCheckedIn">0</span><label>Checked In</label></div>
+                <div class="stat-card"><span id="statVVIP">0</span><label>VVIP</label></div>
+                <div class="stat-card"><span id="statVIP">0</span><label>VIP</label></div>
+                <div class="stat-card"><span id="statDelegate">0</span><label>Delegate</label></div>
+                <div class="stat-card"><span id="statMedia">0</span><label>Media</label></div>
+            </div>
+
+            <!-- Filters -->
+            <div class="admin-filters">
+                <input type="text" id="searchInput" placeholder="Search name, email, org…" oninput="renderTable()">
+                <select id="filterCategory" onchange="renderTable()">
+                    <option value="">All Categories</option>
+                    <option>VVIP</option><option>VIP</option>
+                    <option>Delegate</option><option>Media</option><option>Staff</option>
+                </select>
+                <select id="filterStatus" onchange="renderTable()">
+                    <option value="">All Statuses</option>
+                    <option>pending</option><option>approved</option>
+                    <option>rejected</option><option>checked-in</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+                <table id="regTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th><th>Email</th><th>Organisation</th>
+                            <th>Category</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regBody"></tbody>
+                </table>
+                <p id="emptyMsg" style="display:none;text-align:center;color:#888">No registrations match the filter.</p>
+            </div>
+        </div>
+    </main>
+    <script src="/__/firebase/8.10.1/firebase-app.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
