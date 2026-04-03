@@ -6,23 +6,105 @@
     <title>CEF Check-In</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        body { background: #f0f4f8; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        body { background: #f0f4f8; font-family: Arial, sans-serif; }
+
+        header {
+            background: #1a237e;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h1 { font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+        #logoutBtn {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.35);
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 0;
+        }
+        #logoutBtn:hover { background: rgba(255,255,255,0.28); }
+
+        main { padding: 2rem 1rem; }
+
+        /* ===== FLOATING LOGIN CARD ===== */
+        #checkinLogin {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            padding: 2.5rem;
+            max-width: 420px;
+            margin: 3rem auto;
+        }
+        #checkinLogin h2 {
+            color: #1a237e;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #ddd;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-top: 0;
+        }
+        .form-group input:focus { border-color: #1a237e; }
+
+        #loginBtn {
+            width: 100%;
+            padding: 0.85rem;
+            background: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.3s;
+        }
+        #loginBtn:hover { background: #283593; }
+
+        .error-message {
+            background: #fce4ec;
+            color: #c62828;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* ===== CHECK-IN DASHBOARD ===== */
         .checkin-wrap {
             max-width: 480px;
             margin: 0 auto;
-            padding: 1.5rem;
+            padding: 1rem;
         }
-
-        /* Scanner box */
-        #scanner-container {
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-        #scanner-container video { width: 100%; display: block; }
 
         #scannerMsg {
             text-align: center;
@@ -31,13 +113,22 @@
             margin-bottom: 1rem;
         }
 
+        /* Scanner box */
+        #scanner-container {
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        #scanner-container video { width: 100%; display: block; }
+
         /* Result card */
         #resultCard {
             display: none;
             background: white;
-            border-radius: 8px;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
             margin-bottom: 1.5rem;
         }
 
@@ -45,20 +136,15 @@
             height: 12px;
             width: 100%;
         }
-        .badge-VVIP   { background: #FFD700; }
-        .badge-VIP    { background: #e53935; }
-        .badge-Delegate { background: #1e88e5; }
-        .badge-Media  { background: #43a047; }
-        .badge-Staff  { background: #212121; }
 
-        .result-body { padding: 1.25rem; }
-        .result-name { font-size: 1.4rem; font-weight: bold; margin: 0 0 0.25rem; }
-        .result-meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6; }
+        .result-body { padding: 1.5rem; }
+        .result-name { font-size: 1.4rem; font-weight: bold; margin: 0 0 0.5rem; color: #1a237e; }
+        .result-meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.8; }
 
         .result-category {
             display: inline-block;
-            padding: 0.3rem 0.9rem;
-            border-radius: 20px;
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
             font-weight: bold;
             font-size: 0.85rem;
             color: white;
@@ -68,7 +154,7 @@
         /* Status alerts */
         .alert {
             padding: 1rem;
-            border-radius: 6px;
+            border-radius: 16px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 1rem;
@@ -83,18 +169,30 @@
             padding: 1rem;
             font-size: 1.1rem;
             background: #43a047;
+            border-radius: 50px;
             margin-top: 0;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
         }
         .btn-checkin:hover { background: #2e7d32; }
 
         .btn-scan-again {
             width: 100%;
-            background: #039be5;
-            margin-top: 0.5rem;
+            background: #1a237e;
+            border-radius: 50px;
+            margin-top: 0.75rem;
+            padding: 0.85rem;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
         }
-
-        /* Login form reuse */
-        #checkinLogin { max-width: 400px; margin: 2rem auto; }
+        .btn-scan-again:hover { background: #283593; }
     </style>
 </head>
 <body>
@@ -104,8 +202,9 @@
     </header>
     <main>
         <!-- Login -->
-        <div id="checkinLogin" class="form-container">
+        <div id="checkinLogin">
             <h2>Usher Login</h2>
+            <div id="loginError" class="error-message"></div>
             <div class="form-group">
                 <label for="adminEmail">Email</label>
                 <input type="email" id="adminEmail" placeholder="usher@example.com">
@@ -114,7 +213,6 @@
                 <label for="adminPassword">Password</label>
                 <input type="password" id="adminPassword">
             </div>
-            <div id="loginError" class="error-message"></div>
             <button id="loginBtn">Login</button>
         </div>
 

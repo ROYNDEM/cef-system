@@ -159,15 +159,20 @@ function showResult(reg) {
          <b>ID/Passport:</b> ${reg.idNumber || '—'}<br>
          <b>Phone:</b> ${reg.phone || '—'}`;
 
-    // Category badge
-    const catBadge = document.getElementById('resCategoryBadge');
-    catBadge.textContent        = reg.category || 'Unknown';
-    catBadge.style.background   = BADGE_COLOURS[reg.category] || '#888';
+    // Prominent colour block
+    const colour = BADGE_COLOURS[reg.category] || '#888';
+    const strip  = document.getElementById('badgeStrip');
+    strip.style.background = colour;
+    strip.style.height     = '50px';
+    strip.style.display    = 'flex';
+    strip.style.alignItems = 'center';
+    strip.style.justifyContent = 'center';
+    strip.innerHTML = `<span style="color:${reg.category==='VVIP'?'#333':'white'};font-size:1.6rem;font-weight:bold;letter-spacing:2px;">${reg.category || 'Unknown'}</span>`;
 
-    // Colour strip at top of card
-    const strip = document.getElementById('badgeStrip');
-    strip.className             = 'badge-strip';
-    strip.style.background      = BADGE_COLOURS[reg.category] || '#888';
+    // Category badge pill
+    const catBadge = document.getElementById('resCategoryBadge');
+    catBadge.textContent      = reg.category || 'Unknown';
+    catBadge.style.background = colour;
 
     // Status-based messaging
     const btnCheckIn = document.getElementById('btnCheckIn');
