@@ -1,9 +1,27 @@
 // Initialize Firebase (auto-configured from __/firebase/init.js)
 let db, auth;
 
+// ===== EMAILJS CONFIG =====
+const EMAILJS_SERVICE_ID  = 'service_gx0vptr';
+const EMAILJS_TEMPLATE_ID = 'cef_template';
+const EMAILJS_PUBLIC_KEY  = 'haR-RzgiFMa4hA3rn';
+
+// ===== ADMIN EMAIL WHITELIST =====
+// Add every authorised admin and usher email here
+const ADMIN_EMAILS = [
+    'admin@cef.go.ke',
+    'secretariat@cef.go.ke',
+    'countyenergyforum@gmail.com'
+];
+
 function initApp() {
     db = firebase.firestore();
     auth = firebase.auth();
+
+    // Initialise EmailJS with your public key
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
 
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
         try {
@@ -31,11 +49,16 @@ function initApp() {
         auth.onAuthStateChanged(user => {
             const dashboard = document.getElementById('dashboard');
             if (!dashboard) return;
-            if (user) {
+            if (user && ADMIN_EMAILS.includes(user.email)) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
                 dashboard.style.display = 'block';
                 loadUsers();
+            } else if (user) {
+                // Logged in but not authorised
+                auth.signOut();
+                document.getElementById('loginError').textContent = 'Unauthorised. Contact the system administrator.';
+                document.getElementById('loginError').style.display = 'block';
             } else {
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('logoutBtn').style.display = 'none';
@@ -84,11 +107,14 @@ async function handleRegistration(e) {
     });
 
     // Show loading state
+    const submitBtn = document.querySelector('#form button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
     document.getElementById('loading').style.display = 'block';
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        if (!name || !idNumber || !phone || !email || !organization || !designation || !county || !category) {
+        if (!name || !idNumber || !phone || !email || !organization || !designation || !county) {
             throw new Error('Please fill in all required fields.');
         }
         if (!consent) {
@@ -107,7 +133,12 @@ async function handleRegistration(e) {
         const registrationId = docRef.id;
         console.log('✓ Registration saved:', registrationId);
 
-        generateQRCode(registrationId, name, email);
+        generateQRCode(registrationId);
+
+        // Send confirmation email with QR code
+        await sendConfirmationEmail({
+            name, email, registrationId, category, organization
+        });
 
         document.getElementById('registrationForm').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
@@ -119,31 +150,49 @@ async function handleRegistration(e) {
         document.getElementById('errorMessage').style.display = 'block';
     } finally {
         document.getElementById('loading').style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Register Now';
     }
 }
 
 // ===== QR CODE GENERATION =====
-function generateQRCode(registrationId, name, email) {
+function generateQRCode(registrationId) {
     const container = document.getElementById('qrCodeContainer');
-    container.innerHTML = ''; // Clear previous
+    container.innerHTML = '';
 
-    // QR code data: combine registration ID with participant info
-    const qrData = JSON.stringify({
-        id: registrationId,
-        name: name,
-        email: email,
-        timestamp: new Date().toISOString()
-    });
-
-    // Generate QR code
+    // Store ONLY the registration ID — no personal data in the QR code
     new QRCode(container, {
-        text: qrData,
+        text: registrationId,
         width: 300,
         height: 300,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.H
     });
+}
+
+// ===== SEND CONFIRMATION EMAIL =====
+async function sendConfirmationEmail({ name, email, registrationId, category, organization }) {
+    try {
+        // Wait briefly for QR canvas to render, then extract as base64 image
+        await new Promise(r => setTimeout(r, 800));
+        const canvas = document.querySelector('#qrCodeContainer canvas');
+        const qrImage = canvas ? canvas.toDataURL('image/png') : '';
+
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            participant_name: name,
+            participant_email: email,
+            registration_id:  registrationId,
+            category:         category,
+            organisation:     organization,
+            qr_code_image:    qrImage
+        });
+
+        console.log('✓ Confirmation email sent');
+    } catch (err) {
+        // Email failure is non-blocking — registration is already saved
+        console.warn('Email send failed (registration still saved):', err);
+    }
 }
 
 // ===== ADMIN LOGIN =====
@@ -212,22 +261,50 @@ function renderTable() {
     const categories = ['VVIP','VIP','Delegate','Media','Staff'];
 
     filtered.forEach(reg => {
+        const timestamp = reg.timestamp?.seconds
+            ? new Date(reg.timestamp.seconds * 1000).toLocaleString()
+            : '—';
+
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
         tr.innerHTML = `
-            <td>${reg.name || ''}</td>
-            <td>${reg.email || ''}</td>
+            <td><strong>${reg.name || ''}</strong><br><small style="color:#888">${reg.email || ''}</small></td>
+            <td>${reg.phone || '—'}</td>
             <td>${reg.organization || ''}</td>
+            <td>${reg.designation || '—'}</td>
+            <td>${reg.county || '—'}</td>
             <td>
                 <select class="cat-select" data-id="${reg.id}">
                     ${categories.map(c => `<option${c===reg.category?' selected':''}>${c}</option>`).join('')}
                 </select>
             </td>
             <td><span class="status-badge status-${reg.status}">${reg.status}</span></td>
+            <td style="font-size:0.8rem;color:#666">${timestamp}</td>
             <td class="action-btns">
                 <button class="btn-approve" onclick="updateRegistration('${reg.id}',{status:'approved'})">Approve</button>
                 <button class="btn-reject"  onclick="updateRegistration('${reg.id}',{status:'rejected'})">Reject</button>
             </td>`;
+
+        // Expandable detail row
+        const detailRow = document.createElement('tr');
+        detailRow.className = 'detail-row';
+        detailRow.style.display = 'none';
+        const accessibility = reg.accessibilityNeeds?.length ? reg.accessibilityNeeds.join(', ') : 'None';
+        detailRow.innerHTML = `
+            <td colspan="9" class="detail-cell">
+                <strong>ID/Passport:</strong> ${reg.idNumber || '—'} &nbsp;|
+                <strong> Email:</strong> ${reg.email || '—'} &nbsp;|
+                <strong> Accessibility:</strong> ${accessibility} &nbsp;|
+                <strong> Special Requests:</strong> ${reg.specialRequests || 'None'}
+            </td>`;
+
+        tr.addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') return;
+            detailRow.style.display = detailRow.style.display === 'none' ? 'table-row' : 'none';
+        });
+
         tbody.appendChild(tr);
+        tbody.appendChild(detailRow);
     });
 
     // Category change handler
@@ -245,4 +322,39 @@ async function updateRegistration(id, updates) {
         console.error('Update failed:', err);
         alert('Update failed: ' + err.message);
     }
+}
+
+// ===== EXPORT CSV =====
+function exportCSV() {
+    const headers = [
+        'Name', 'ID/Passport', 'Phone', 'Email',
+        'Organisation', 'Designation', 'County',
+        'Category', 'Status', 'Accessibility', 'Special Requests', 'Registered'
+    ];
+
+    const rows = allRegistrations.map(r => [
+        r.name || '',
+        r.idNumber || '',
+        r.phone || '',
+        r.email || '',
+        r.organization || '',
+        r.designation || '',
+        r.county || '',
+        r.category || '',
+        r.status || '',
+        (r.accessibilityNeeds || []).join('; '),
+        r.specialRequests || '',
+        r.timestamp?.seconds
+            ? new Date(r.timestamp.seconds * 1000).toLocaleString()
+            : ''
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `cef-registrations-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }

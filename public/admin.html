@@ -41,7 +41,7 @@
                 <div class="stat-card"><span id="statMedia">0</span><label>Media</label></div>
             </div>
 
-            <!-- Filters -->
+            <!-- Filters + Export -->
             <div class="admin-filters">
                 <input type="text" id="searchInput" placeholder="Search name, email, org…" oninput="renderTable()">
                 <select id="filterCategory" onchange="renderTable()">
@@ -54,6 +54,7 @@
                     <option>pending</option><option>approved</option>
                     <option>rejected</option><option>checked-in</option>
                 </select>
+                <button onclick="exportCSV()" style="background:#2e7d32;margin-top:0;">⬇ Export CSV</button>
             </div>
 
             <!-- Table -->
@@ -61,8 +62,8 @@
                 <table id="regTable">
                     <thead>
                         <tr>
-                            <th>Name</th><th>Email</th><th>Organisation</th>
-                            <th>Category</th><th>Status</th><th>Actions</th>
+                            <th>Name</th><th>Phone</th><th>Organisation</th><th>Designation</th>
+                            <th>County</th><th>Category</th><th>Status</th><th>Registered</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="regBody"></tbody>
@@ -71,9 +72,9 @@
             </div>
         </div>
     </main>
-    <script src="/__/firebase/8.10.1/firebase-app.js"></script>
-    <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
-    <script src="/__/firebase/8.10.1/firebase-firestore.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
     <script src="/__/firebase/init.js"></script>
     <script src="js/app.js"></script>
 </body>

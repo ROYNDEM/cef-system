@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEF Check-In</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { background: #f0f4f8; }
+
+        .checkin-wrap {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Scanner box */
+        #scanner-container {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        #scanner-container video { width: 100%; display: block; }
+
+        #scannerMsg {
+            text-align: center;
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Result card */
+        #resultCard {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-strip {
+            height: 12px;
+            width: 100%;
+        }
+        .badge-VVIP   { background: #FFD700; }
+        .badge-VIP    { background: #e53935; }
+        .badge-Delegate { background: #1e88e5; }
+        .badge-Media  { background: #43a047; }
+        .badge-Staff  { background: #212121; }
+
+        .result-body { padding: 1.25rem; }
+        .result-name { font-size: 1.4rem; font-weight: bold; margin: 0 0 0.25rem; }
+        .result-meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6; }
+
+        .result-category {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        /* Status alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .alert-warning  { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .alert-danger   { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+        .alert-success  { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .alert-info     { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+        .btn-checkin {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            background: #43a047;
+            margin-top: 0;
+        }
+        .btn-checkin:hover { background: #2e7d32; }
+
+        .btn-scan-again {
+            width: 100%;
+            background: #039be5;
+            margin-top: 0.5rem;
+        }
+
+        /* Login form reuse */
+        #checkinLogin { max-width: 400px; margin: 2rem auto; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CEF Check-In</h1>
+        <button id="logoutBtn" style="display:none" onclick="auth.signOut()">Logout</button>
+    </header>
+    <main>
+        <!-- Login -->
+        <div id="checkinLogin" class="form-container">
+            <h2>Usher Login</h2>
+            <div class="form-group">
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" placeholder="usher@example.com">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword">
+            </div>
+            <div id="loginError" class="error-message"></div>
+            <button id="loginBtn">Login</button>
+        </div>
+
+        <!-- Check-in UI -->
+        <div id="checkinDashboard" style="display:none">
+            <div class="checkin-wrap">
+                <p id="scannerMsg">Point the camera at a participant's QR code</p>
+                <div id="scanner-container">
+                    <div id="qr-reader"></div>
+                </div>
+
+                <!-- Result card -->
+                <div id="resultCard">
+                    <div id="badgeStrip" class="badge-strip"></div>
+                    <div class="result-body">
+                        <p class="result-name" id="resName"></p>
+                        <span class="result-category" id="resCategoryBadge"></span>
+                        <p class="result-meta" id="resMeta"></p>
+                        <div id="statusAlert"></div>
+                        <button class="btn-checkin" id="btnCheckIn" style="display:none">
+                            ✓ Mark as Checked In
+                        </button>
+                        <button class="btn-scan-again" onclick="resetScanner()">Scan Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="js/checkin.js"></script>
+</body>
+</html>

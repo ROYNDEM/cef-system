@@ -10,17 +10,31 @@ app.use(express.json());
 // POST /register
 app.post('/register', async (req, res) => {
     try {
-        const { name, email, organization } = req.body;
+        const {
+            name, email, phone, idNumber,
+            organization, designation, county, category,
+            accessibilityNeeds, specialRequests, consent
+        } = req.body;
+
+        if (!name || !email || !phone || !idNumber || !organization || !designation || !county || !category) {
+            return res.status(400).send({ error: 'Missing required fields.' });
+        }
+        if (!consent) {
+            return res.status(400).send({ error: 'Data consent is required.' });
+        }
+
         const docRef = await admin.firestore().collection('registrations').add({
-            name,
-            email,
-            organization,
+            name, email, phone, idNumber,
+            organization, designation, county, category,
+            accessibilityNeeds: accessibilityNeeds || [],
+            specialRequests: specialRequests || '',
+            consent: true,
             status: 'pending',
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
         res.status(201).send({ id: docRef.id });
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send({ error: error.message });
     }
 });
 
