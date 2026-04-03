@@ -95,8 +95,14 @@ async function onScanSuccess(decodedText) {
     scanner.pause();
     document.getElementById('scannerMsg').textContent = 'Looking up participant…';
 
-    // QR code now stores only the registration ID as plain text
-    const regId = decodedText.trim();
+    // Handle both old JSON format {id, name, email} and new plain text ID
+    let regId;
+    try {
+        const data = JSON.parse(decodedText);
+        regId = data.id;
+    } catch(e) {
+        regId = decodedText.trim();
+    }
 
     if (!regId) {
         showAlert('warning', 'Invalid QR code. Please try again.');

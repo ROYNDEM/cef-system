@@ -107,9 +107,11 @@
         <div class="register-container">
             <div id="successMessage" class="success-message">
                 <h3>✓ Registration Successful!</h3>
-                <p>Your QR code is below. Please save or print it.</p>
-                <div id="qrCodeContainer" class="qr-code-container"></div>
-                <p id="registrationId" style="margin-top: 1rem; font-size: 0.9rem; color: #2c5f3f;"></p>
+                <p>Thank you for registering for the County Energy Forum (25–27 May 2026).</p>
+                <p>A confirmation email with your QR code has been sent to your email address. Please check your inbox and save the QR code for check-in on the day of the event.</p>
+                <p id="registrationId" style="margin-top:1rem;font-size:0.9rem;color:#2c5f3f;"></p>
+                <!-- QR generated in background for email only, not shown to participant -->
+                <div id="qrCodeContainer" style="display:none;"></div>
             </div>
 
             <div id="errorMessage" class="error-message"></div>
