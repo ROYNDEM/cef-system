@@ -57,16 +57,26 @@ function waitForFirebase(retries = 20) {
 
 document.addEventListener('DOMContentLoaded', () => waitForFirebase());
 
+// ===== ACCESSIBILITY TOGGLE =====
+function toggleAccessibility(show) {
+    document.getElementById('accessibilityDetails').style.display = show ? 'block' : 'none';
+}
+
 // ===== REGISTRATION FORM HANDLER =====
 async function handleRegistration(e) {
     e.preventDefault();
 
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const organization = document.getElementById('organization').value;
-    const category = document.getElementById('category').value;
+    const name         = document.getElementById('name').value.trim();
+    const idNumber     = document.getElementById('idNumber').value.trim();
+    const phone        = document.getElementById('phone').value.trim();
+    const email        = document.getElementById('email').value.trim();
+    const organization = document.getElementById('organization').value.trim();
+    const designation  = document.getElementById('designation').value.trim();
+    const county       = document.getElementById('county').value.trim();
+    const category     = document.getElementById('category').value;
     const specialRequests = document.getElementById('specialRequests').value || '';
-    
+    const consent      = document.getElementById('consent').checked;
+
     // Collect accessibility needs
     const accessibilityNeeds = [];
     document.querySelectorAll('input[name="accessibility"]:checked').forEach(cb => {
@@ -78,19 +88,18 @@ async function handleRegistration(e) {
     document.getElementById('errorMessage').style.display = 'none';
 
     try {
-        // Validate inputs
-        if (!name || !email || !organization || !category) {
+        if (!name || !idNumber || !phone || !email || !organization || !designation || !county || !category) {
             throw new Error('Please fill in all required fields.');
         }
+        if (!consent) {
+            throw new Error('You must consent to data usage to complete registration.');
+        }
 
-        // Save to Firestore
         const docRef = await db.collection('registrations').add({
-            name,
-            email,
-            organization,
-            category,
-            accessibilityNeeds,
-            specialRequests,
+            name, idNumber, phone, email,
+            organization, designation, county, category,
+            accessibilityNeeds, specialRequests,
+            consent: true,
             status: 'pending',
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -98,10 +107,8 @@ async function handleRegistration(e) {
         const registrationId = docRef.id;
         console.log('✓ Registration saved:', registrationId);
 
-        // Generate QR code
         generateQRCode(registrationId, name, email);
 
-        // Show success message
         document.getElementById('registrationForm').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
         document.getElementById('registrationId').textContent = `Registration ID: ${registrationId}`;

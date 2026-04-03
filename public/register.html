@@ -95,7 +95,7 @@
     <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
     <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
     <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <script defer src="/__/firebase/init.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -120,9 +120,24 @@
                 </div>
 
                 <form id="form">
+                    <p style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;">Fields marked * are mandatory.</p>
+
+                    <!-- PERSONAL INFORMATION -->
+                    <h3 style="border-bottom:2px solid #039be5;padding-bottom:0.5rem;margin-bottom:1rem;">Personal Information</h3>
+
                     <div class="form-group">
-                        <label for="name">Full Name *</label>
+                        <label for="name">Full Name (as per ID) *</label>
                         <input type="text" id="name" required placeholder="e.g., John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="idNumber">National ID / Passport Number *</label>
+                        <input type="text" id="idNumber" required placeholder="e.g., 12345678">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" required placeholder="e.g., +254 700 000000">
                     </div>
 
                     <div class="form-group">
@@ -130,37 +145,73 @@
                         <input type="email" id="email" required placeholder="your.email@example.com">
                     </div>
 
+                    <!-- PROFESSIONAL INFORMATION -->
+                    <h3 style="border-bottom:2px solid #039be5;padding-bottom:0.5rem;margin-bottom:1rem;margin-top:2rem;">Professional Information</h3>
+
                     <div class="form-group">
-                        <label for="organization">Organization/Institution *</label>
-                        <input type="text" id="organization" required placeholder="e.g., County Government">
+                        <label for="organization">Organisation / Institution *</label>
+                        <input type="text" id="organization" required placeholder="e.g., County Government of Nairobi">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="designation">Designation *</label>
+                        <input type="text" id="designation" required placeholder="e.g., Director of Energy">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="county">County / Institution *</label>
+                        <input type="text" id="county" required placeholder="e.g., Nairobi County">
                     </div>
 
                     <div class="form-group">
                         <label for="category">Participant Category *</label>
                         <select id="category" required>
-                            <option value="">--Select Category--</option>
+                            <option value="">-- Select Category --</option>
                             <option value="VVIP">VVIP (Cabinet Secretary, Speaker)</option>
                             <option value="VIP">VIP (Members of Parliament, CEOs)</option>
                             <option value="Delegate">Delegate (Technical Participant)</option>
-                            <option value="Media">Media/Press</option>
+                            <option value="Media">Media / Press</option>
                             <option value="Staff">Event Staff</option>
                         </select>
                     </div>
 
+                    <!-- ACCESSIBILITY -->
+                    <h3 style="border-bottom:2px solid #039be5;padding-bottom:0.5rem;margin-bottom:1rem;margin-top:2rem;">Accessibility & Special Requirements</h3>
+
                     <div class="form-group">
-                        <label>Accessibility Needs</label>
+                        <label>Do you require any accessibility support?</label>
                         <div class="checkbox-group">
                             <div class="checkbox-item">
-                                <input type="checkbox" id="wheelchairAccess" name="accessibility" value="wheelchair">
-                                <label for="wheelchairAccess" style="margin: 0; font-weight: normal;">Wheelchair Access</label>
+                                <input type="radio" name="accessibilityToggle" id="accessNo" value="no" checked onchange="toggleAccessibility(false)">
+                                <label for="accessNo" style="margin:0;font-weight:normal;">No</label>
                             </div>
                             <div class="checkbox-item">
-                                <input type="checkbox" id="signLanguage" name="accessibility" value="signLanguage">
-                                <label for="signLanguage" style="margin: 0; font-weight: normal;">Sign Language</label>
+                                <input type="radio" name="accessibilityToggle" id="accessYes" value="yes" onchange="toggleAccessibility(true)">
+                                <label for="accessYes" style="margin:0;font-weight:normal;">Yes</label>
                             </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="largeprint" name="accessibility" value="largeprint">
-                                <label for="largeprint" style="margin: 0; font-weight: normal;">Large Print</label>
+                        </div>
+                    </div>
+
+                    <div id="accessibilityDetails" style="display:none;">
+                        <div class="form-group">
+                            <label>Please specify your needs:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="wheelchairAccess" name="accessibility" value="wheelchair">
+                                    <label for="wheelchairAccess" style="margin:0;font-weight:normal;">Wheelchair Access</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="signLanguage" name="accessibility" value="signLanguage">
+                                    <label for="signLanguage" style="margin:0;font-weight:normal;">Sign Language</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="largeprint" name="accessibility" value="largeprint">
+                                    <label for="largeprint" style="margin:0;font-weight:normal;">Large Print</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="dietary" name="accessibility" value="dietary">
+                                    <label for="dietary" style="margin:0;font-weight:normal;">Dietary Requirements</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -168,6 +219,16 @@
                     <div class="form-group">
                         <label for="specialRequests">Special Requests (Optional)</label>
                         <textarea id="specialRequests" placeholder="Any other needs or requests..."></textarea>
+                    </div>
+
+                    <!-- CONSENT -->
+                    <h3 style="border-bottom:2px solid #039be5;padding-bottom:0.5rem;margin-bottom:1rem;margin-top:2rem;">Consent</h3>
+
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="consent" required>
+                            <label for="consent" style="margin:0;font-weight:normal;">I consent to my personal data being collected and used for accreditation and event management purposes in accordance with applicable data protection laws. *</label>
+                        </div>
                     </div>
 
                     <button type="submit">Register Now</button>
