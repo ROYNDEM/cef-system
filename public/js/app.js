@@ -2,9 +2,10 @@
 let db, auth;
 
 // ===== EMAILJS CONFIG =====
-const EMAILJS_SERVICE_ID  = 'service_gx0vptr';
-const EMAILJS_TEMPLATE_ID = 'cef_template';
-const EMAILJS_PUBLIC_KEY  = 'haR-RzgiFMa4hA3rn';
+const EMAILJS_SERVICE_ID       = 'service_gx0vptr';
+const EMAILJS_TEMPLATE_QR      = 'cef_template';      // approval email with QR code
+const EMAILJS_TEMPLATE_PENDING = 'template_62q3sqm';  // registration received email
+const EMAILJS_PUBLIC_KEY       = 'haR-RzgiFMa4hA3rn';
 
 // ===== ADMIN EMAIL WHITELIST =====
 // Add every authorised admin and usher email here
@@ -135,10 +136,8 @@ async function handleRegistration(e) {
 
         generateQRCode(registrationId);
 
-        // Send confirmation email with QR code
-        await sendConfirmationEmail({
-            name, email, registrationId, category, organization
-        });
+        // Send pending confirmation — QR will be sent after admin approval
+        await sendPendingEmail({ name, email, registrationId });
 
         document.getElementById('registrationForm').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
@@ -171,27 +170,52 @@ function generateQRCode(registrationId) {
     });
 }
 
-// ===== SEND CONFIRMATION EMAIL =====
+// ===== SEND PENDING EMAIL (on registration) =====
+async function sendPendingEmail({ name, email, registrationId }) {
+    try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_PENDING, {
+            participant_name:  name,
+            participant_email: email,
+            registration_id:   registrationId
+        });
+        console.log('✓ Pending confirmation email sent');
+    } catch (err) {
+        console.warn('Pending email failed (registration still saved):', err);
+    }
+}
+
+// ===== SEND QR EMAIL (after admin approval) =====
 async function sendConfirmationEmail({ name, email, registrationId, category, organization }) {
     try {
-        // Wait briefly for QR canvas to render, then extract as base64 image
-        await new Promise(r => setTimeout(r, 800));
-        const canvas = document.querySelector('#qrCodeContainer canvas');
-        const qrImage = canvas ? canvas.toDataURL('image/png') : '';
-
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-            participant_name: name,
-            participant_email: email,
-            registration_id:  registrationId,
-            category:         category,
-            organisation:     organization,
-            qr_code_image:    qrImage
+        // Generate QR code in hidden container
+        const container = document.getElementById('qrEmailContainer');
+        container.innerHTML = '';
+        new QRCode(container, {
+            text: registrationId,
+            width: 200, height: 200,
+            colorDark: '#000000', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
         });
 
-        console.log('✓ Confirmation email sent');
+        // Wait for canvas to render
+        await new Promise(r => setTimeout(r, 800));
+        const canvas = container.querySelector('canvas');
+        const qrImage = canvas ? canvas.toDataURL('image/png') : '';
+
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_QR, {
+            participant_name:  name,
+            participant_email: email,
+            registration_id:   registrationId,
+            category:          category,
+            organisation:      organization,
+            qr_code_image:     qrImage
+        });
+
+        console.log('✓ QR approval email sent to', email);
+        return true;
     } catch (err) {
-        // Email failure is non-blocking — registration is already saved
-        console.warn('Email send failed (registration still saved):', err);
+        console.error('QR email failed:', err);
+        return false;
     }
 }
 
@@ -318,6 +342,20 @@ function renderTable() {
 async function updateRegistration(id, updates) {
     try {
         await db.collection('registrations').doc(id).update(updates);
+
+        // If approving, automatically send QR email
+        if (updates.status === 'approved') {
+            const reg = allRegistrations.find(r => r.id === id);
+            if (reg) {
+                await sendConfirmationEmail({
+                    name:           reg.name,
+                    email:          reg.email,
+                    registrationId: reg.id,
+                    category:       reg.category,
+                    organization:   reg.organization
+                });
+            }
+        }
     } catch (err) {
         console.error('Update failed:', err);
         alert('Update failed: ' + err.message);

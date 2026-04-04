@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>County Energy Forum 2026</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- AOS: Animate On Scroll library — adds scroll-triggered animations via data attributes -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* Step 7: smooth scroll globally */
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             background: #f4f4f4;
             overflow-x: hidden;
         }
 
-        /* ===== HEADER =====
-         * display: flex with justify-content: space-between puts the
-         * staff menu on the left and the title centred using flex: 1
-         * on the title wrapper.
-         */
         header {
             background: #1a237e;
             color: white;
@@ -32,64 +32,46 @@
             justify-content: space-between;
         }
 
-        /* ===== STAFF MENU (embedded in header, left side) =====
-         * position: relative so the dropdown is positioned
-         * relative to this container, not the whole page.
-         */
-        .staff-menu {
-            position: relative;
-            z-index: 200;
-        }
+        .staff-menu { position: relative; z-index: 200; }
         .staff-toggle {
-            width: 38px;
-            height: 38px;
+            width: 38px; height: 38px;
             border-radius: 50%;
             background: rgba(255,255,255,0.15);
             border: 2px solid rgba(255,255,255,0.35);
-            color: white;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: white; font-size: 1.1rem;
+            cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
             transition: background 0.3s;
         }
         .staff-toggle:hover { background: rgba(255,255,255,0.28); }
-
-        /* Dropdown slides down from below the header button */
         .staff-dropdown {
             position: absolute;
             top: calc(100% + 0.6rem);
-            left: 0;
-            max-height: 0;
+            left: 0; max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            min-width: 170px;
+            display: flex; flex-direction: column;
+            gap: 0.4rem; min-width: 170px;
         }
         .staff-menu.open .staff-dropdown { max-height: 130px; }
         .staff-dropdown a {
-            background: white;
-            color: #1a237e;
-            padding: 0.6rem 1.2rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            background: white; color: #1a237e;
+            padding: 0.6rem 1.2rem; border-radius: 50px;
+            font-size: 0.85rem; font-weight: bold;
             text-decoration: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            white-space: nowrap;
-            transition: background 0.2s;
+            white-space: nowrap; transition: background 0.2s;
         }
         .staff-dropdown a:hover { background: #e3f2fd; }
-
-        /* Spacer so the title doesn't shift when staff menu is on the left */
         .header-spacer { width: 38px; }
 
-        /* ===== HERO ===== */
+        /* ===== HERO =====
+         * Step 6: heroFade animation on load
+         * Step 9: gradientMove makes the background shift slowly — gives a living feel
+         */
         .hero {
-            background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+            background: linear-gradient(135deg, #1a237e, #039be5);
+            background-size: 200% 200%;
             color: white;
             padding: 3rem 2rem 4rem;
             text-align: center;
@@ -98,6 +80,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 0 0 20px 20px;
+            animation: heroFade 1s ease, gradientMove 8s ease infinite;
         }
         .hero h1 { font-size: 2.4rem; margin-bottom: 1rem; line-height: 1.3; }
         .hero .event-date {
@@ -105,28 +88,25 @@
             background: rgba(255,255,255,0.15);
             padding: 0.6rem 1.5rem;
             border-radius: 50px;
-            font-size: 1rem;
-            font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+        }
+
+        @keyframes heroFade {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* ===== ABOUT ===== */
-        .about {
-            background: white;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
+        .about { background: white; padding: 4rem 2rem; text-align: center; }
         .about h2 { font-size: 1.8rem; color: #1a237e; margin-bottom: 1rem; }
-        .about p {
-            max-width: 750px;
-            margin: 0 auto 1rem;
-            color: #555;
-            font-size: 1rem;
-            line-height: 1.8;
-        }
+        .about p { max-width: 750px; margin: 0 auto 1rem; color: #555; font-size: 1rem; line-height: 1.8; }
         .about .divider {
-            width: 60px;
-            height: 4px;
+            width: 60px; height: 4px;
             background: #0277bd;
             margin: 1rem auto 2rem;
             border-radius: 50px;
@@ -134,15 +114,11 @@
 
         /* ===== SCROLL SNAP CARDS ===== */
         .cards-section {
-            height: 100vh;
-            overflow-y: scroll;
-            scroll-snap-type: y proximity;
+            overflow-y: visible;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
         }
         .feature-card {
-            scroll-snap-align: start;
-            height: 100vh;
+            min-height: 60vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -152,72 +128,46 @@
             position: relative;
             background: #f0f4f8;
         }
+
+        /* Step 5: card hover lift and scale */
         .card-inner {
-            background: white;
-            border-radius: 24px;
+            background: white; border-radius: 24px;
             padding: 3rem 2.5rem;
             box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            max-width: 600px;
-            width: 100%;
+            max-width: 600px; width: 100%;
+            transition: all 0.3s ease;
         }
+        .card-inner:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
         .card-icon { font-size: 4rem; margin-bottom: 1.5rem; }
-        .feature-card h3 { font-size: 1.8rem; color: #1a237e; margin-bottom: 1rem; }
+        .feature-card h3 { font-size: 1.8rem; color: #1a237e; margin-bottom: 1rem; border-left: none; padding-left: 0; }
         .feature-card p { font-size: 1.05rem; color: #555; max-width: 560px; line-height: 1.8; }
 
-        .scroll-hint {
-            position: absolute;
-            bottom: 1.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5rem;
-            opacity: 0.4;
-            animation: bounce 1.5s infinite;
-        }
-        .feature-card:last-child .scroll-hint { display: none; }
-        @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50%       { transform: translateX(-50%) translateY(8px); }
-        }
+        .scroll-hint { display: none; }
 
         /* ===== FOOTER ===== */
-        footer {
-            background: #1a237e;
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            font-size: 0.9rem;
-            border-radius: 0;
-        }
+        footer { background: #1a237e; color: white; text-align: center; padding: 2rem; font-size: 0.9rem; }
 
-        /* ===== FLOATING REGISTER BUTTON (bottom right) ===== */
-        .fab-register {
-            position: fixed;
-            bottom: calc(1.5rem + env(safe-area-inset-bottom));
-            right: 2rem;
-            background: #039be5;
+        .header-register {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.8);
             color: white;
-            padding: 1rem 2.5rem;
+            padding: 0.4rem 1.2rem;
             border-radius: 50px;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             text-decoration: none;
-            box-shadow: 0 4px 16px rgba(3,155,229,0.5);
-            z-index: 999;
-            transition: background 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            transition: background 0.3s;
             white-space: nowrap;
         }
-        .fab-register:hover {
-            background: #0288d1;
-            transform: scale(1.05);
-        }
+        .header-register:hover { background: rgba(255,255,255,0.28); }
     </style>
 </head>
 <body>
 
-    <!-- HEADER with embedded staff menu on the left, centred title -->
     <header>
         <div class="staff-menu" id="staffMenu">
             <button class="staff-toggle" onclick="toggleStaffMenu()" title="Staff Access">&#128100;</button>
@@ -226,27 +176,30 @@
                 <a href="/checkin.html">📷 Staff Check-In</a>
             </div>
         </div>
+        <a href="/register.html" class="header-register">✏️ Register Now</a>
         <div class="header-spacer"></div>
     </header>
 
-    <!-- HERO -->
+    <!-- Step 2: hero elements animate on load via AOS fade-up with staggered delay -->
     <section class="hero">
-        <h1>County Energy Forum</h1>
-        <div class="event-date">📅 25 – 27 May 2026 &nbsp;|&nbsp; Nairobi, Kenya</div>
+        <h1 data-aos="fade-up">County Energy Forum</h1>
+        <div class="event-date" data-aos="fade-up" data-aos-delay="200">
+            📅 25 – 27 May 2026 &nbsp;|&nbsp; Nairobi, Kenya
+        </div>
     </section>
 
-    <!-- ABOUT -->
+    <!-- Step 3: about section elements fade up as you scroll into view -->
     <section class="about">
-        <h2>About the Forum</h2>
-        <div class="divider"></div>
-        <p>The County Energy Forum is a high-level intergovernmental and multi-stakeholder convening bringing together participants, including senior government leadership, Members of Parliament, county governments, development partners, and the private sector.</p>
-        <p>The Forum provides a platform for high-level dialogue and decision-making on energy policy, county energy programmes, and strategic partnerships. It is designed to ensure a seamless, secure, and protocol-compliant experience for all participants.</p>
-        <p>Registration is strictly by invitation and prior confirmation. All participants will receive a unique QR code upon registration for fast, secure check-in on the day of the event.</p>
+        <h2 data-aos="fade-up">About the Forum</h2>
+        <div class="divider" data-aos="zoom-in"></div>
+        <p data-aos="fade-up" data-aos-delay="100">The County Energy Forum is a high-level intergovernmental and multi-stakeholder convening bringing together participants, including senior government leadership, Members of Parliament, county governments, development partners, and the private sector.</p>
+        <p data-aos="fade-up" data-aos-delay="200">The Forum provides a platform for high-level dialogue and decision-making on energy policy, county energy programmes, and strategic partnerships. It is designed to ensure a seamless, secure, and protocol-compliant experience for all participants.</p>
+        <p data-aos="fade-up" data-aos-delay="300">Registration is strictly by invitation and prior confirmation. All participants will receive a unique QR code upon registration for fast, secure check-in on the day of the event.</p>
     </section>
 
-    <!-- SCROLL SNAP CARDS -->
+    <!-- Step 4: cards alternate fade-right and fade-left for a premium feel -->
     <div class="cards-section">
-        <div class="feature-card">
+        <div class="feature-card" data-aos="fade-right">
             <div class="card-inner">
                 <div class="card-icon">🎟️</div>
                 <h3>Pre-Event Registration</h3>
@@ -255,7 +208,7 @@
             <div class="scroll-hint">&#8595;</div>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-aos="fade-left">
             <div class="card-inner">
                 <div class="card-icon">🔐</div>
                 <h3>Secure Access Control</h3>
@@ -264,7 +217,7 @@
             <div class="scroll-hint">&#8595;</div>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-aos="fade-right">
             <div class="card-inner">
                 <div class="card-icon">⚡</div>
                 <h3>Fast Check-In</h3>
@@ -273,7 +226,7 @@
             <div class="scroll-hint">&#8595;</div>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-aos="fade-left">
             <div class="card-inner">
                 <div class="card-icon">♿</div>
                 <h3>Accessibility First</h3>
@@ -283,15 +236,15 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
     <footer>
         <p>County Energy Forum &copy; 2026 &nbsp;|&nbsp; For registration support, contact the Secretariat</p>
     </footer>
 
-    <!-- FLOATING REGISTER BUTTON -->
-    <a href="/register.html" class="fab-register">✏️ Register Now</a>
-
+    <!-- AOS init: duration 800ms, animations only fire once as you scroll past -->
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
     <script>
+        AOS.init({ duration: 800, once: true });
+
         function toggleStaffMenu() {
             document.getElementById('staffMenu').classList.toggle('open');
         }
