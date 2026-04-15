@@ -5,22 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>County Energy Forum 2026</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- AOS: Animate On Scroll library — adds scroll-triggered animations via data attributes -->
     <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        /* Step 7: smooth scroll globally */
         html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f8; overflow-x: hidden; }
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f4f4f4;
-            overflow-x: hidden;
-        }
-
+        /* ===== HEADER ===== */
         header {
-            background: #1a237e;
+            background: #1b5e20;
             color: white;
             padding: 1rem 1.5rem;
             position: sticky;
@@ -30,12 +23,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-radius: 0 0 20px 20px;
         }
-
         .staff-menu { position: relative; z-index: 200; }
         .staff-toggle {
-            width: 38px; height: 38px;
-            border-radius: 50%;
+            width: 38px; height: 38px; border-radius: 50%;
             background: rgba(255,255,255,0.15);
             border: 2px solid rgba(255,255,255,0.35);
             color: white; font-size: 1.1rem;
@@ -45,10 +37,8 @@
         }
         .staff-toggle:hover { background: rgba(255,255,255,0.28); }
         .staff-dropdown {
-            position: absolute;
-            top: calc(100% + 0.6rem);
-            left: 0; max-height: 0;
-            overflow: hidden;
+            position: absolute; top: calc(100% + 0.6rem);
+            left: 0; max-height: 0; overflow: hidden;
             transition: max-height 0.3s ease;
             display: flex; flex-direction: column;
             gap: 0.4rem; min-width: 170px;
@@ -64,109 +54,260 @@
         }
         .staff-dropdown a:hover { background: #e3f2fd; }
         .header-spacer { width: 38px; }
-
-        /* ===== HERO =====
-         * Step 6: heroFade animation on load
-         * Step 9: gradientMove makes the background shift slowly — gives a living feel
-         */
-        .hero {
-            background: linear-gradient(135deg, #1a237e, #039be5);
-            background-size: 200% 200%;
-            color: white;
-            padding: 3rem 2rem 4rem;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0 0 20px 20px;
-            animation: heroFade 1s ease, gradientMove 8s ease infinite;
-        }
-        .hero h1 { font-size: 2.4rem; margin-bottom: 1rem; line-height: 1.3; }
-        .hero .event-date {
-            margin-top: 1.5rem;
+        .header-register {
             background: rgba(255,255,255,0.15);
-            padding: 0.6rem 1.5rem;
-            border-radius: 50px;
-            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            border: 2px solid rgba(255,255,255,0.8);
+            color: white; padding: 0.4rem 1.2rem;
+            border-radius: 50px; font-size: 0.9rem;
+            font-weight: bold; text-decoration: none;
+            transition: background 0.3s, box-shadow 0.3s;
+            white-space: nowrap;
+        }
+        .header-register:hover { background: rgba(255,255,255,0.28); box-shadow: 0 0 12px rgba(255,255,255,0.6); }
+
+        /* ===== SCROLL PROGRESS BAR ===== */
+        .progress-bar {
+            position: fixed; top: 0; left: 0;
+            height: 4px; background: #00e676;
+            width: 0%; z-index: 9999;
+            transition: width 0.1s linear;
         }
 
-        @keyframes heroFade {
-            from { opacity: 0; transform: translateY(-20px); }
-            to   { opacity: 1; transform: translateY(0); }
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 80vh;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #1b5e20, #00e676);
+            background-size: 200% 200%;
+            color: white; text-align: center; padding: 3rem 2rem;
+            animation: heroFade 1s ease, gradientMove 4s ease infinite;
+            border-radius: 14px;
+        
         }
-        @keyframes gradientMove {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .hero-content { max-width: 700px; width: 100%; }
+
+        .hero h1 {
+            font-size: 2.6rem; line-height: 1.3; min-height: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #fff 30%, #00e676);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero h1 .cursor {
+            -webkit-text-fill-color: initial;
+            background: none;
+        }
+        .hero-sub {
+            max-width: 580px; margin: 0 auto 0.75rem;
+            opacity: 0.92; font-size: 1.05rem; line-height: 1.7;
+        }
+        .event-date {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 0.5rem 1.4rem; border-radius: 50px;
+            font-size: 0.95rem; font-weight: bold; letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+        .hero-actions {
+            display: flex; gap: 1rem;
+            justify-content: center; flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            background: white; color: #1b5e20;
+            padding: 0.8rem 1.8rem; border-radius: 50px;
+            font-weight: bold; font-size: 1rem;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .btn-outline {
+            border: 2px solid white; color: white;
+            padding: 0.8rem 1.8rem; border-radius: 50px;
+            font-weight: bold; font-size: 1rem;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+        /* Typing cursor */
+        .cursor {
+            display: inline-block;
+            animation: blink 0.7s infinite;
+            margin-left: 4px; vertical-align: middle;
+            font-size: 2.6rem;
+            filter: brightness(1.8) drop-shadow(0 0 8px rgba(255,235,0,0.9));
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Countdown */
+        .countdown-wrap {
+            display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+        }
+        .countdown-box {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 16px; padding: 0.75rem 1.25rem;
+            min-width: 70px; text-align: center;
+        }
+        .countdown-box span { display: block; font-size: 1.8rem; font-weight: bold; line-height: 1; }
+        .countdown-box label { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; margin-top: 0.25rem; display: block; }
+
+        /* Live counter */
+        .live-count {
+            margin-top: 1.25rem;
+            background: rgba(255,255,255,0.12);
+            padding: 0.5rem 1.25rem; border-radius: 50px;
+            font-size: 0.95rem; opacity: 0.9; display: inline-block;
+        }
+        .live-count span { font-weight: bold; font-size: 1.1rem; }
+
+        @keyframes heroFade { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* Skeleton shimmer */
+        .skeleton-count {
+            display: inline-block; width: 40px; height: 1em;
+            background: linear-gradient(90deg, rgba(255,255,255,0.2), rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px; vertical-align: middle;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ===== TRUST BAR ===== */
+        .trust-bar {
+            background: white; text-align: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #eee;
+        }
+        .trust-bar p { font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1rem; }
+        .trust-logos {
+            display: flex; flex-wrap: wrap; gap: 0.75rem;
+            justify-content: center; align-items: center;
+        }
+        .trust-badge {
+            background: #f4f6f9; color: #1a237e;
+            padding: 0.5rem 1.2rem; border-radius: 50px;
+            font-size: 0.85rem; font-weight: bold;
+            border: 1px solid #e0e4ef;
         }
 
         /* ===== ABOUT ===== */
         .about { background: white; padding: 4rem 2rem; text-align: center; }
         .about h2 { font-size: 1.8rem; color: #1a237e; margin-bottom: 1rem; }
         .about p { max-width: 750px; margin: 0 auto 1rem; color: #555; font-size: 1rem; line-height: 1.8; }
-        .about .divider {
-            width: 60px; height: 4px;
-            background: #0277bd;
-            margin: 1rem auto 2rem;
-            border-radius: 50px;
-        }
+        .about .divider { width: 60px; height: 4px; background: #0277bd; margin: 1rem auto 2rem; border-radius: 50px; }
 
-        /* ===== SCROLL SNAP CARDS ===== */
-        .cards-section {
-            overflow-y: visible;
-            scroll-behavior: smooth;
+        /* ===== FEATURES GRID ===== */
+        .features { background: #f4f6f9; padding: 4rem 2rem; }
+        .features h2 { text-align: center; font-size: 1.8rem; color: #1a237e; margin-bottom: 2.5rem; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem; max-width: 1000px; margin: 0 auto;
         }
-        .feature-card {
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem 2rem;
+        .feature {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 2rem; border-radius: 20px;
             text-align: center;
-            position: relative;
-            background: #f0f4f8;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .feature:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+        .feature-icon { font-size: 2.8rem; margin-bottom: 1rem; }
+        .feature h3 { font-size: 1.1rem; color: #1a237e; margin-bottom: 0.5rem; }
+        .feature p { font-size: 0.92rem; color: #666; line-height: 1.6; }
+
+        /* ===== HIGHLIGHTS ===== */
+        .highlights { background: white; padding: 4rem 2rem; text-align: center; }
+        .highlights h2 { font-size: 1.8rem; color: #1a237e; margin-bottom: 2rem; }
+        .highlights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; max-width: 900px; margin: 0 auto;
+        }
+        .highlight-item {
+            background: #f4f6f9; border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.95rem; color: #333;
+            font-weight: 500; text-align: left;
+            border-left: 4px solid #00e676;
+            transition: transform 0.2s;
+        }
+        .highlight-item:hover { transform: translateX(4px); }
+
+        /* ===== MAP ===== */
+        .map-section { padding: 4rem 2rem; background: #f4f6f9; text-align: center; }
+        .map-section h2 { font-size: 1.8rem; color: #1a237e; margin-bottom: 0.5rem; }
+        .map-section p { color: #555; margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .map-section iframe {
+            width: 100%; max-width: 800px; height: 320px;
+            border: none; border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
-        /* Step 5: card hover lift and scale */
-        .card-inner {
-            background: white; border-radius: 24px;
-            padding: 3rem 2.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            max-width: 600px; width: 100%;
-            transition: all 0.3s ease;
+        /* ===== FINAL CTA ===== */
+        .cta {
+            background: linear-gradient(135deg, #1a237e, #0277bd);
+            color: white; text-align: center; padding: 4rem 2rem;
         }
-        .card-inner:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-
-        .card-icon { font-size: 4rem; margin-bottom: 1.5rem; }
-        .feature-card h3 { font-size: 1.8rem; color: #1a237e; margin-bottom: 1rem; border-left: none; padding-left: 0; }
-        .feature-card p { font-size: 1.05rem; color: #555; max-width: 560px; line-height: 1.8; }
-
-        .scroll-hint { display: none; }
+        .cta h2 { font-size: 2rem; margin-bottom: 0.75rem; }
+        .cta p { opacity: 0.85; margin-bottom: 1.75rem; font-size: 1rem; }
 
         /* ===== FOOTER ===== */
-        footer { background: #1a237e; color: white; text-align: center; padding: 2rem; font-size: 0.9rem; }
+        footer { background: #111; color: #aaa; text-align: center; padding: 1.5rem; font-size: 0.85rem; }
 
-        .header-register {
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.8);
-            color: white;
-            padding: 0.4rem 1.2rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            text-decoration: none;
-            transition: background 0.3s;
-            white-space: nowrap;
+        /* ===== FAB ===== */
+        .fab-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; }
+        .fab {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #00e676; color: #1b5e20;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            cursor: pointer; border: none;
+            transition: transform 0.2s, box-shadow 0.2s; margin-top: 0;
         }
-        .header-register:hover { background: rgba(255,255,255,0.28); }
+        .fab:hover { transform: scale(1.1); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+        .fab:active { transform: scale(0.95); }
+        .fab-menu {
+            position: absolute; bottom: 70px; right: 0;
+            display: flex; flex-direction: column; gap: 0.5rem;
+            align-items: flex-end; max-height: 0; overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+        .fab-wrap.open .fab-menu { max-height: 200px; }
+        .fab-item {
+            background: white; color: #1b5e20;
+            padding: 0.55rem 1.1rem; border-radius: 50px;
+            font-size: 0.88rem; font-weight: bold;
+            text-decoration: none; white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            transition: background 0.2s, transform 0.2s;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .fab-item:hover { background: #e8f5e9; transform: translateX(-3px); }
+
+        /* ===== MICRO-INTERACTIONS ===== */
+        button:active { transform: scale(0.97); }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.7rem; }
+            .countdown-box { min-width: 60px; padding: 0.6rem 0.9rem; }
+            .countdown-box span { font-size: 1.4rem; }
+            .fab-wrap { bottom: 16px; right: 16px; }
+            .hero-actions { flex-direction: column; align-items: center; }
+        }
     </style>
 </head>
 <body>
+    <div class="progress-bar" id="progressBar"></div>
 
     <header>
         <div class="staff-menu" id="staffMenu">
@@ -176,71 +317,131 @@
                 <a href="/checkin.html">📷 Staff Check-In</a>
             </div>
         </div>
-        <a href="/register.html" class="header-register">✏️ Register Now</a>
         <div class="header-spacer"></div>
     </header>
 
-    <!-- Step 2: hero elements animate on load via AOS fade-up with staggered delay -->
+    <!-- HERO -->
     <section class="hero">
-        <h1 data-aos="fade-up">County Energy Forum</h1>
-        <div class="event-date" data-aos="fade-up" data-aos-delay="200">
-            📅 25 – 27 May 2026 &nbsp;|&nbsp; Nairobi, Kenya
+        <div class="hero-content">
+            <h1 id="typingText"></h1>
+            <p class="hero-sub" data-aos="fade-up" data-aos-delay="200">
+                A high-level forum bringing together national and county leadership,
+                development partners, and private sector stakeholders.
+            </p>
+            <div class="event-date" data-aos="fade-up" data-aos-delay="300">
+                📅 25 – 27 May 2026 &nbsp;|&nbsp; Nairobi, Kenya
+            </div>
+            <div class="hero-actions" data-aos="fade-up" data-aos-delay="400">
+                <a href="/register.html" class="btn-primary">✏️ Register Now</a>
+                <a href="#about" class="btn-outline">Learn More</a>
+            </div>
+            <div class="countdown-wrap" data-aos="fade-up" data-aos-delay="500">
+                <div class="countdown-box"><span id="cdDays">--</span><label>Days</label></div>
+                <div class="countdown-box"><span id="cdHours">--</span><label>Hours</label></div>
+                <div class="countdown-box"><span id="cdMins">--</span><label>Minutes</label></div>
+                <div class="countdown-box"><span id="cdSecs">--</span><label>Seconds</label></div>
+            </div>
+            <div class="live-count" data-aos="fade-up" data-aos-delay="600">
+                👥 <span id="liveCount"><span class="skeleton-count"></span></span> participants registered
+            </div>
         </div>
     </section>
 
-    <!-- Step 3: about section elements fade up as you scroll into view -->
-    <section class="about">
+    <!-- TRUST BAR -->
+    <section class="trust-bar" data-aos="fade-up">
+        <p>In partnership with</p>
+        <div class="trust-logos">
+            <span class="trust-badge">🏛️ Ministry of Energy</span>
+            <span class="trust-badge">🏛️ The Senate</span>
+            <span class="trust-badge">🏛️ Council of Governors</span>
+            <span class="trust-badge">🌍 Development Partners</span>
+            <span class="trust-badge">⚡ County Governments</span>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about" id="about">
         <h2 data-aos="fade-up">About the Forum</h2>
         <div class="divider" data-aos="zoom-in"></div>
-        <p data-aos="fade-up" data-aos-delay="100">The County Energy Forum is a high-level intergovernmental and multi-stakeholder convening bringing together participants, including senior government leadership, Members of Parliament, county governments, development partners, and the private sector.</p>
-        <p data-aos="fade-up" data-aos-delay="200">The Forum provides a platform for high-level dialogue and decision-making on energy policy, county energy programmes, and strategic partnerships. It is designed to ensure a seamless, secure, and protocol-compliant experience for all participants.</p>
-        <p data-aos="fade-up" data-aos-delay="300">Registration is strictly by invitation and prior confirmation. All participants will receive a unique QR code upon registration for fast, secure check-in on the day of the event.</p>
+        <p data-aos="fade-up" data-aos-delay="100">The County Energy Forum is a high-level intergovernmental and multi-stakeholder convening bringing together senior government leadership, Members of Parliament, county governments, development partners, and the private sector.</p>
+        <p data-aos="fade-up" data-aos-delay="200">Registration is strictly by invitation and prior confirmation. All participants will receive a unique QR code upon approval for fast, secure check-in on the day of the event.</p>
     </section>
 
-    <!-- Step 4: cards alternate fade-right and fade-left for a premium feel -->
-    <div class="cards-section">
-        <div class="feature-card" data-aos="fade-right">
-            <div class="card-inner">
-                <div class="card-icon">🎟️</div>
-                <h3>Pre-Event Registration</h3>
-                <p>Register in advance using our secure online form. Provide your details, confirm attendance, and receive your unique QR code via email — ready for fast check-in on event day.</p>
+    <!-- FEATURES GRID -->
+    <section class="features">
+        <h2 data-aos="fade-up">How It Works</h2>
+        <div class="features-grid">
+            <div class="feature" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-icon">🎟️</div>
+                <h3>Smart Registration</h3>
+                <p>Secure pre-event registration with QR access delivered to your email.</p>
             </div>
-            <div class="scroll-hint">&#8595;</div>
-        </div>
-
-        <div class="feature-card" data-aos="fade-left">
-            <div class="card-inner">
-                <div class="card-icon">🔐</div>
-                <h3>Secure Access Control</h3>
-                <p>Every participant is assigned a category — VVIP, VIP, Delegate, Media, or Staff — with colour-coded badges and QR codes. Security personnel can instantly verify access levels at every entry point.</p>
+            <div class="feature" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-icon">🔐</div>
+                <h3>Access Control</h3>
+                <p>Role-based entry — VVIP, VIP, Delegate, Media, Staff — with instant verification.</p>
             </div>
-            <div class="scroll-hint">&#8595;</div>
-        </div>
-
-        <div class="feature-card" data-aos="fade-right">
-            <div class="card-inner">
-                <div class="card-icon">⚡</div>
+            <div class="feature" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-icon">⚡</div>
                 <h3>Fast Check-In</h3>
-                <p>VVIPs and VIPs are processed in under one minute through dedicated fast-track lanes. Delegates are checked in under two minutes. No queues. No confusion. No bottlenecks.</p>
+                <p>Under 2 minutes processing time. No queues. No confusion.</p>
             </div>
-            <div class="scroll-hint">&#8595;</div>
+            <div class="feature" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-icon">♿</div>
+                <h3>Accessibility</h3>
+                <p>Inclusive design with priority lanes, reserved seating, and trained ushers.</p>
+            </div>
         </div>
+    </section>
 
-        <div class="feature-card" data-aos="fade-left">
-            <div class="card-inner">
-                <div class="card-icon">♿</div>
-                <h3>Accessibility First</h3>
-                <p>We are committed to full inclusion. Participants with disabilities can indicate their needs during registration. Priority check-in, reserved seating, sign language interpretation, and trained ushers will be available.</p>
-            </div>
-            <div class="scroll-hint">&#8595;</div>
+    <!-- HIGHLIGHTS -->
+    <section class="highlights">
+        <h2 data-aos="fade-up">What to Expect</h2>
+        <div class="highlights-grid">
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="100">✔ High-level policy dialogue</div>
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="150">✔ County energy strategy sessions</div>
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="200">✔ Private sector networking</div>
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="250">✔ Investment opportunities showcase</div>
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="300">✔ Intergovernmental coordination</div>
+            <div class="highlight-item" data-aos="fade-up" data-aos-delay="350">✔ Development partner engagements</div>
         </div>
-    </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="map-section" data-aos="fade-up">
+        <h2>📍 Event Location</h2>
+        <p>Nairobi, Kenya &nbsp;|&nbsp; 25 – 27 May 2026</p>
+        <iframe
+            src="https://maps.google.com/maps?q=Nairobi+Kenya&t=&z=13&ie=UTF8&iwloc=&output=embed"
+            allowfullscreen loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="cta" data-aos="fade-up">
+        <h2>Secure Your Participation</h2>
+        <p>Registration is strictly by invitation and prior confirmation.</p>
+        <a href="/register.html" class="btn-primary">✏️ Register Now</a>
+    </section>
 
     <footer>
         <p>County Energy Forum &copy; 2026 &nbsp;|&nbsp; For registration support, contact the Secretariat</p>
     </footer>
 
-    <!-- AOS init: duration 800ms, animations only fire once as you scroll past -->
+    <!-- FAB -->
+    <div class="fab-wrap" id="fabWrap">
+        <div class="fab-menu">
+            <a href="/register.html" class="fab-item">✏️ Register Now</a>
+            <a href="#about" class="fab-item">📋 About the Forum</a>
+            <a href="mailto:countyenergyforum@gmail.com" class="fab-item">📧 Contact Secretariat</a>
+        </div>
+        <button class="fab" onclick="document.getElementById('fabWrap').classList.toggle('open')" title="Quick Actions">＋</button>
+    </div>
+
+    <script src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js"></script>
     <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
     <script>
         AOS.init({ duration: 800, once: true });
@@ -252,7 +453,78 @@
             const menu = document.getElementById('staffMenu');
             if (!menu.contains(e.target)) menu.classList.remove('open');
         });
-    </script>
 
+        // ===== TYPING ANIMATION =====
+        const text = 'County Energy Forum';
+        let i = 0;
+        const el = document.getElementById('typingText');
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        cursor.textContent = '⚡';
+        el.appendChild(cursor);
+
+        function typeEffect() {
+            if (i < text.length) {
+                el.insertBefore(document.createTextNode(text.charAt(i)), cursor);
+                i++;
+                setTimeout(typeEffect, 60);
+            } else {
+                setTimeout(() => cursor.remove(), 1000);
+            }
+        }
+        setTimeout(typeEffect, 400);
+
+        // ===== COUNTDOWN =====
+        const eventDate = new Date('May 25, 2026 08:00:00 GMT+0300').getTime();
+        function updateCountdown() {
+            const diff = eventDate - Date.now();
+            if (diff <= 0) {
+                document.querySelector('.countdown-wrap').innerHTML = '<p style="color:white;font-size:1.2rem;">The Forum is Live!</p>';
+                return;
+            }
+            document.getElementById('cdDays').textContent  = String(Math.floor(diff / 86400000)).padStart(2,'0');
+            document.getElementById('cdHours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+            document.getElementById('cdMins').textContent  = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+            document.getElementById('cdSecs').textContent  = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // ===== ANIMATED LIVE COUNTER =====
+        function animateCount(el, newValue) {
+            const start = parseInt(el.textContent.replace(/,/g, '')) || 0;
+            if (start === newValue) return;
+            const duration = 500, startTime = performance.now();
+            function step(now) {
+                const progress = Math.min((now - startTime) / duration, 1);
+                el.textContent = Math.floor(start + (newValue - start) * progress).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function waitForFirebaseHome(retries = 20) {
+            if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                firebase.firestore().collection('registrations').onSnapshot(snapshot => {
+                    animateCount(document.getElementById('liveCount'), snapshot.size);
+                });
+            } else if (retries > 0) {
+                setTimeout(() => waitForFirebaseHome(retries - 1), 100);
+            }
+        }
+        waitForFirebaseHome();
+
+        // ===== SCROLL PROGRESS BAR =====
+        window.addEventListener('scroll', () => {
+            const height = document.body.scrollHeight - window.innerHeight;
+            document.getElementById('progressBar').style.width = (window.scrollY / height * 100) + '%';
+        });
+
+        // Close FAB on outside click
+        document.addEventListener('click', e => {
+            const fab = document.getElementById('fabWrap');
+            if (!fab.contains(e.target)) fab.classList.remove('open');
+        });
+    </script>
 </body>
 </html>

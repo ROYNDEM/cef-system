@@ -11,10 +11,145 @@
     <script defer src="/__/firebase/init.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        /* ===== PROGRESS BAR ===== */
+        .progress-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 2rem;
+        }
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+        }
+        .step-circle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #999;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+        .step-label {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 0.4rem;
+            text-align: center;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        .progress-step.active .step-circle {
+            background: linear-gradient(135deg, #1b5e20, #43a047);
+            color: white;
+            box-shadow: 0 4px 12px rgba(27,94,32,0.4);
+            transform: scale(1.1);
+        }
+        .progress-step.active .step-label { color: #1b5e20; font-weight: bold; }
+        .progress-step.done .step-circle {
+            background: #43a047;
+            color: white;
+        }
+        .progress-step.done .step-label { color: #43a047; }
+
+        /* Connector line between steps */
+        .step-connector {
+            height: 3px;
+            flex: 1;
+            background: #e0e0e0;
+            margin-bottom: 1.4rem;
+            transition: background 0.4s ease;
+        }
+        .step-connector.done { background: #43a047; }
+
+        /* ===== FORM STEPS ===== */
+        .form-step {
+            display: none;
+            animation: stepIn 0.4s ease;
+        }
+        .form-step.active { display: block; }
+
+        @keyframes stepIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes stepBack {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .form-step.back { animation: stepBack 0.4s ease; }
+
+        /* ===== NAVIGATION BUTTONS ===== */
+        .step-nav {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .btn-back {
+            flex: 1;
+            background: #f0f4f8;
+            color: #333;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            padding: 0.85rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-back:hover { background: #e0e0e0; transform: none; box-shadow: none; }
+        .btn-next {
+            flex: 2;
+            background: linear-gradient(135deg, #1b5e20, #43a047);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.85rem;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-next:hover { box-shadow: 0 8px 20px rgba(27,94,32,0.3); transform: translateY(-2px); }
+
+        /* ===== REVIEW STEP ===== */
+        .review-card {
+            background: #f8fdf8;
+            border: 1.5px solid #c8e6c9;
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .review-card h4 {
+            color: #1b5e20;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 0.5rem;
+        }
+        .review-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            padding: 0.3rem 0;
+            color: #444;
+        }
+        .review-row span:first-child { color: #888; }
+        .review-row span:last-child { font-weight: bold; text-align: right; max-width: 60%; }
+    </style>
 </head>
 <body>
     <header>
-        <a href="/" class="back-btn" title="Back to Home">&#8592;</a>
+        <a href="/" class="back-btn" title="Back to Home">&#8249;</a>
         <h1>County Energy Forum — Registration</h1>
         <div style="width:38px"></div>
     </header>
@@ -26,7 +161,7 @@
                 <span class="success-icon">✔</span>
                 <h3>Registration Successful!</h3>
                 <p>Thank you for registering for the County Energy Forum (25–27 May 2026).</p>
-                <p>A confirmation email with your QR code has been sent to your email address. Please check your inbox and save the QR code for check-in on the day of the event.</p>
+                <p>A confirmation email has been sent to your email address. You will receive your QR code once your registration is approved by the Secretariat.</p>
                 <p id="registrationId" style="margin-top:1rem;font-size:0.9rem;"></p>
                 <div id="qrCodeContainer" style="display:none;"></div>
             </div>
@@ -40,104 +175,262 @@
                     <p>Submitting your registration...</p>
                 </div>
 
+                <!-- Progress Bar -->
+                <div class="progress-wrap" id="progressBar">
+                    <div class="progress-step active" id="ps1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Personal</div>
+                    </div>
+                    <div class="step-connector" id="sc1"></div>
+                    <div class="progress-step" id="ps2">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Professional</div>
+                    </div>
+                    <div class="step-connector" id="sc2"></div>
+                    <div class="progress-step" id="ps3">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">Accessibility</div>
+                    </div>
+                    <div class="step-connector" id="sc3"></div>
+                    <div class="progress-step" id="ps4">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Review</div>
+                    </div>
+                </div>
+
                 <form id="form">
-                    <p style="color:#888;font-size:0.9rem;margin-bottom:1.5rem;">Fields marked * are mandatory.</p>
-
-                    <h3>Personal Information</h3>
-
-                    <div class="form-group">
-                        <label for="name">Full Name (as per ID) *</label>
-                        <input type="text" id="name" required placeholder="e.g., John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="idNumber">National ID / Passport Number *</label>
-                        <input type="text" id="idNumber" required placeholder="e.g., 12345678">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number *</label>
-                        <input type="tel" id="phone" required placeholder="e.g., +254 700 000000">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email Address *</label>
-                        <input type="email" id="email" required placeholder="your.email@example.com">
-                    </div>
-
-                    <h3 style="margin-top:2rem;">Professional Information</h3>
-
-                    <div class="form-group">
-                        <label for="organization">Organisation / Institution *</label>
-                        <input type="text" id="organization" required placeholder="e.g., County Government of Nairobi">
-                    </div>
-                    <div class="form-group">
-                        <label for="designation">Designation *</label>
-                        <input type="text" id="designation" required placeholder="e.g., Director of Energy">
-                    </div>
-                    <div class="form-group">
-                        <label for="county">County / Institution *</label>
-                        <input type="text" id="county" required placeholder="e.g., Nairobi County">
-                    </div>
-
                     <input type="hidden" id="category" value="Delegate">
 
-                    <h3 style="margin-top:2rem;">Accessibility &amp; Special Requirements</h3>
-
-                    <div class="form-group">
-                        <label>Do you require any accessibility support?</label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="radio" name="accessibilityToggle" id="accessNo" value="no" checked onchange="toggleAccessibility(false)">
-                                <label for="accessNo">No</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="radio" name="accessibilityToggle" id="accessYes" value="yes" onchange="toggleAccessibility(true)">
-                                <label for="accessYes">Yes</label>
-                            </div>
+                    <!-- STEP 1: Personal Information -->
+                    <div class="form-step active" id="step1">
+                        <h3>Personal Information</h3>
+                        <p style="color:#888;font-size:0.85rem;margin-bottom:1.5rem;">Fields marked * are mandatory.</p>
+                        <div class="form-group">
+                            <label for="name">Full Name (as per ID) *</label>
+                            <input type="text" id="name" placeholder="e.g., John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="idNumber">National ID / Passport Number *</label>
+                            <input type="text" id="idNumber" placeholder="e.g., 12345678">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" placeholder="e.g., +254 700 000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" placeholder="your.email@example.com">
+                        </div>
+                        <div class="step-nav">
+                            <button type="button" class="btn-next" onclick="nextStep(1)">Next →</button>
                         </div>
                     </div>
 
-                    <div id="accessibilityDetails" style="display:none;">
+                    <!-- STEP 2: Professional Information -->
+                    <div class="form-step" id="step2">
+                        <h3>Professional Information</h3>
+                        <p style="color:#888;font-size:0.85rem;margin-bottom:1.5rem;">Fields marked * are mandatory.</p>
                         <div class="form-group">
-                            <label>Please specify your needs:</label>
+                            <label for="organization">Organisation / Institution *</label>
+                            <input type="text" id="organization" placeholder="e.g., County Government of Nairobi">
+                        </div>
+                        <div class="form-group">
+                            <label for="designation">Designation *</label>
+                            <input type="text" id="designation" placeholder="e.g., Director of Energy">
+                        </div>
+                        <div class="form-group">
+                            <label for="county">County / Institution *</label>
+                            <input type="text" id="county" placeholder="e.g., Nairobi County">
+                        </div>
+                        <div class="step-nav">
+                            <button type="button" class="btn-back" onclick="prevStep(2)">← Back</button>
+                            <button type="button" class="btn-next" onclick="nextStep(2)">Next →</button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Accessibility -->
+                    <div class="form-step" id="step3">
+                        <h3>Accessibility &amp; Special Requirements</h3>
+                        <p style="color:#888;font-size:0.85rem;margin-bottom:1.5rem;">All fields are optional.</p>
+                        <div class="form-group">
+                            <label>Do you require any accessibility support?</label>
                             <div class="checkbox-group">
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="wheelchairAccess" name="accessibility" value="wheelchair">
-                                    <label for="wheelchairAccess">Wheelchair Access</label>
+                                    <input type="radio" name="accessibilityToggle" id="accessNo" value="no" checked onchange="toggleAccessibility(false)">
+                                    <label for="accessNo">No</label>
                                 </div>
                                 <div class="checkbox-item">
-                                    <input type="checkbox" id="signLanguage" name="accessibility" value="signLanguage">
-                                    <label for="signLanguage">Sign Language</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="largeprint" name="accessibility" value="largeprint">
-                                    <label for="largeprint">Large Print</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="dietary" name="accessibility" value="dietary">
-                                    <label for="dietary">Dietary Requirements</label>
+                                    <input type="radio" name="accessibilityToggle" id="accessYes" value="yes" onchange="toggleAccessibility(true)">
+                                    <label for="accessYes">Yes</label>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="specialRequests">Special Requests (Optional)</label>
-                        <textarea id="specialRequests" placeholder="Any other needs or requests..."></textarea>
-                    </div>
-
-                    <h3 style="margin-top:2rem;">Consent</h3>
-
-                    <div class="form-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="consent" required>
-                            <label for="consent">I consent to my personal data being collected and used for accreditation and event management purposes in accordance with applicable data protection laws. *</label>
+                        <div id="accessibilityDetails" style="display:none;">
+                            <div class="form-group">
+                                <label>Please specify your needs:</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="wheelchairAccess" name="accessibility" value="wheelchair">
+                                        <label for="wheelchairAccess">Wheelchair Access</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="signLanguage" name="accessibility" value="signLanguage">
+                                        <label for="signLanguage">Sign Language</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="largeprint" name="accessibility" value="largeprint">
+                                        <label for="largeprint">Large Print</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="dietary" name="accessibility" value="dietary">
+                                        <label for="dietary">Dietary Requirements</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="specialRequests">Special Requests (Optional)</label>
+                            <textarea id="specialRequests" placeholder="Any other needs or requests..."></textarea>
+                        </div>
+                        <div class="step-nav">
+                            <button type="button" class="btn-back" onclick="prevStep(3)">← Back</button>
+                            <button type="button" class="btn-next" onclick="nextStep(3)">Next →</button>
                         </div>
                     </div>
 
-                    <button type="submit" style="width:100%;margin-top:1.5rem;">Register Now</button>
+                    <!-- STEP 4: Review & Submit -->
+                    <div class="form-step" id="step4">
+                        <h3>Review &amp; Submit</h3>
+                        <p style="color:#888;font-size:0.85rem;margin-bottom:1.5rem;">Please review your details before submitting.</p>
+
+                        <div class="review-card">
+                            <h4>Personal Information</h4>
+                            <div class="review-row"><span>Full Name</span><span id="rv-name">—</span></div>
+                            <div class="review-row"><span>ID / Passport</span><span id="rv-id">—</span></div>
+                            <div class="review-row"><span>Phone</span><span id="rv-phone">—</span></div>
+                            <div class="review-row"><span>Email</span><span id="rv-email">—</span></div>
+                        </div>
+
+                        <div class="review-card">
+                            <h4>Professional Information</h4>
+                            <div class="review-row"><span>Organisation</span><span id="rv-org">—</span></div>
+                            <div class="review-row"><span>Designation</span><span id="rv-designation">—</span></div>
+                            <div class="review-row"><span>County</span><span id="rv-county">—</span></div>
+                        </div>
+
+                        <div class="review-card">
+                            <h4>Accessibility</h4>
+                            <div class="review-row"><span>Needs</span><span id="rv-accessibility">None</span></div>
+                            <div class="review-row"><span>Special Requests</span><span id="rv-special">None</span></div>
+                        </div>
+
+                        <!-- Consent -->
+                        <div class="form-group" style="margin-top:1rem;">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="consent">
+                                <label for="consent">I consent to my personal data being collected and used for accreditation and event management purposes in accordance with applicable data protection laws. *</label>
+                            </div>
+                        </div>
+
+                        <div class="step-nav">
+                            <button type="button" class="btn-back" onclick="prevStep(4)">← Back</button>
+                            <button type="submit" class="btn-next">Submit Registration</button>
+                        </div>
+                    </div>
+
                 </form>
             </div>
         </div>
     </main>
+
     <script src="js/app.js"></script>
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        // ===== STEP NAVIGATION =====
+        function nextStep(from) {
+            if (!validateStep(from)) return;
+            if (from === totalSteps - 1) populateReview();
+            goToStep(from + 1, false);
+        }
+
+        function prevStep(from) {
+            goToStep(from - 1, true);
+        }
+
+        function goToStep(to, isBack) {
+            const current = document.getElementById('step' + currentStep);
+            const next    = document.getElementById('step' + to);
+
+            current.classList.remove('active');
+            next.classList.remove('back');
+            if (isBack) next.classList.add('back');
+            next.classList.add('active');
+
+            // Update progress bar
+            for (let i = 1; i <= totalSteps; i++) {
+                const ps = document.getElementById('ps' + i);
+                ps.classList.remove('active', 'done');
+                if (i < to)      ps.classList.add('done');
+                else if (i === to) ps.classList.add('active');
+            }
+            // Update connectors
+            for (let i = 1; i < totalSteps; i++) {
+                const sc = document.getElementById('sc' + i);
+                sc.classList.toggle('done', i < to);
+            }
+
+            currentStep = to;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== STEP VALIDATION =====
+        function validateStep(step) {
+            const fields = {
+                1: ['name', 'idNumber', 'phone', 'email'],
+                2: ['organization', 'designation', 'county'],
+                3: [],
+                4: []
+            };
+            for (const id of fields[step]) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) {
+                    el.focus();
+                    el.style.borderColor = '#e53935';
+                    el.addEventListener('input', () => el.style.borderColor = '', { once: true });
+                    showToast('Please fill in all required fields', 'warning');
+                    return false;
+                }
+            }
+            // Email format check
+            if (step === 1) {
+                const email = document.getElementById('email').value;
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    document.getElementById('email').focus();
+                    showToast('Please enter a valid email address', 'warning');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // ===== POPULATE REVIEW =====
+        function populateReview() {
+            document.getElementById('rv-name').textContent        = document.getElementById('name').value;
+            document.getElementById('rv-id').textContent          = document.getElementById('idNumber').value;
+            document.getElementById('rv-phone').textContent       = document.getElementById('phone').value;
+            document.getElementById('rv-email').textContent       = document.getElementById('email').value;
+            document.getElementById('rv-org').textContent         = document.getElementById('organization').value;
+            document.getElementById('rv-designation').textContent = document.getElementById('designation').value;
+            document.getElementById('rv-county').textContent      = document.getElementById('county').value;
+
+            const needs = [...document.querySelectorAll('input[name="accessibility"]:checked')]
+                .map(cb => cb.value).join(', ') || 'None';
+            document.getElementById('rv-accessibility').textContent = needs;
+            document.getElementById('rv-special').textContent =
+                document.getElementById('specialRequests').value || 'None';
+        }
+    </script>
 </body>
 </html>

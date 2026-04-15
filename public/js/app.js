@@ -1,3 +1,22 @@
+// ===== TOAST NOTIFICATIONS =====
+function showToast(message, type = 'info', duration = 3000) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const icons = { success: '✓', error: '✗', info: 'ℹ', warning: '⚠' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = `${icons[type] || ''} ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
 // Initialize Firebase (auto-configured from __/firebase/init.js)
 let db, auth;
 
@@ -53,8 +72,11 @@ function initApp() {
             if (user && ADMIN_EMAILS.includes(user.email)) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('statsBtn').style.display = 'inline-block';
                 dashboard.style.display = 'block';
-                loadUsers();
+                setTimeout(() => {
+                    loadUsers();
+                }, 300);
             } else if (user) {
                 // Logged in but not authorised
                 auth.signOut();
@@ -63,6 +85,7 @@ function initApp() {
             } else {
                 document.getElementById('loginForm').style.display = 'block';
                 document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('statsBtn').style.display = 'none';
                 dashboard.style.display = 'none';
             }
         });
@@ -142,6 +165,7 @@ async function handleRegistration(e) {
         document.getElementById('registrationForm').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';
         document.getElementById('registrationId').textContent = `Registration ID: ${registrationId}`;
+        showToast('Registration submitted successfully!', 'success');
 
     } catch (error) {
         console.error('Registration error:', error);
@@ -233,39 +257,209 @@ async function handleAdminLogin() {
         console.log('✓ Admin logged in');
     } catch (error) {
         console.error('Login error:', error);
-        alert(`Login failed: ${error.message}`);
+        showToast('Login failed: ' + error.message, 'error');
     }
 }
 
 // ===== ADMIN DASHBOARD =====
 let allRegistrations = [];
+let currentPage = 1;
+const rowsPerPage = 10;
+let sortField = '';
+let sortAsc = true;
+let selectedIds = new Set();
 
 function loadUsers() {
+    document.getElementById('tableLoader').style.display = 'block';
     db.collection('registrations').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
         allRegistrations = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('tableLoader').style.display = 'none';
         updateStats();
         renderTable();
     }, err => console.error('Snapshot error:', err));
 }
 
+function sortTable(field) {
+    sortAsc = sortField === field ? !sortAsc : true;
+    sortField = field;
+    currentPage = 1;
+    // Update header classes
+    document.querySelectorAll('#regTable th.sortable').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.getAttribute('onclick') === `sortTable('${field}')`) {
+            th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+        }
+    });
+    renderTable();
+}
+
+function toggleSelectAll(cb) {
+    document.querySelectorAll('.rowCheck').forEach(c => {
+        c.checked = cb.checked;
+        const id = c.dataset.id;
+        if (cb.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+    });
+    // Sync both checkboxes
+    document.getElementById('selectAll').checked = cb.checked;
+    document.getElementById('selectAllHeader').checked = cb.checked;
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    document.getElementById('selectedCount').textContent = `${selectedIds.size} selected`;
+}
+
+async function bulkAction(status) {
+    if (!selectedIds.size) { showToast('No registrations selected', 'warning'); return; }
+    const count = selectedIds.size;
+    showToast(`Updating ${count} registration(s)…`, 'info');
+    const promises = [...selectedIds].map(id => updateRegistration(id, { status }));
+    await Promise.all(promises);
+    selectedIds.clear();
+    updateSelectedCount();
+    showToast(`${count} registration(s) ${status}`, 'success');
+}
+
 function updateStats() {
     const r = allRegistrations;
-    document.getElementById('statTotal').textContent    = r.length;
-    document.getElementById('statPending').textContent  = r.filter(x => x.status === 'pending').length;
-    document.getElementById('statApproved').textContent = r.filter(x => x.status === 'approved').length;
-    document.getElementById('statCheckedIn').textContent= r.filter(x => x.status === 'checked-in').length;
-    document.getElementById('statVVIP').textContent     = r.filter(x => x.category === 'VVIP').length;
-    document.getElementById('statVIP').textContent      = r.filter(x => x.category === 'VIP').length;
-    document.getElementById('statDelegate').textContent = r.filter(x => x.category === 'Delegate').length;
-    document.getElementById('statMedia').textContent    = r.filter(x => x.category === 'Media').length;
+    const vals = {
+        statTotal:     r.length,
+        statPending:   r.filter(x => x.status === 'pending').length,
+        statApproved:  r.filter(x => x.status === 'approved').length,
+        statCheckedIn: r.filter(x => x.status === 'checked-in').length,
+        statVVIP:      r.filter(x => x.category === 'VVIP').length,
+        statVIP:       r.filter(x => x.category === 'VIP').length,
+        statDelegate:  r.filter(x => x.category === 'Delegate').length,
+        statMedia:     r.filter(x => x.category === 'Media').length
+    };
+    Object.entries(vals).forEach(([id, newVal]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const oldVal = parseInt(el.textContent) || 0;
+        if (oldVal !== newVal) {
+            // Count-up animation
+            const duration = 600;
+            const steps = 20;
+            const increment = (newVal - oldVal) / steps;
+            let current = oldVal;
+            let step = 0;
+            const timer = setInterval(() => {
+                step++;
+                current += increment;
+                el.textContent = Math.round(current);
+                if (step >= steps) {
+                    el.textContent = newVal;
+                    clearInterval(timer);
+                }
+            }, duration / steps);
+            // Pulse the card
+            const card = el.closest('.stat-card');
+            if (card) {
+                card.classList.remove('stat-pulse');
+                void card.offsetWidth; // force reflow to restart animation
+                card.classList.add('stat-pulse');
+                setTimeout(() => card.classList.remove('stat-pulse'), 600);
+            }
+        }
+    });
+}
+
+// ===== RIPPLE EFFECT =====
+function addRipple(e) {
+    const btn    = e.currentTarget;
+    const circle = document.createElement('span');
+    const size   = Math.max(btn.offsetWidth, btn.offsetHeight);
+    const rect   = btn.getBoundingClientRect();
+    circle.className = 'ripple';
+    circle.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    btn.appendChild(circle);
+    setTimeout(() => circle.remove(), 500);
+}
+
+// ===== STATS OVERLAY =====
+let chartCategory = null, chartStatus = null, chartTime = null;
+let statsOpen = false;
+
+function toggleStats() {
+    const overlay = document.getElementById('statsOverlay');
+    statsOpen = !statsOpen;
+    overlay.style.display = statsOpen ? 'block' : 'none';
+    if (statsOpen) {
+        // Charts need the overlay visible before they can measure canvas size
+        setTimeout(() => renderCharts(), 100);
+    }
+}
+
+function renderCharts() {
+    const r = allRegistrations;
+    if (!r.length) return;
+
+    // Category doughnut
+    const catData = {
+        labels: ['VVIP','VIP','Delegate','Media','Staff'],
+        datasets: [{
+            data: [
+                r.filter(x => x.category === 'VVIP').length,
+                r.filter(x => x.category === 'VIP').length,
+                r.filter(x => x.category === 'Delegate').length,
+                r.filter(x => x.category === 'Media').length,
+                r.filter(x => x.category === 'Staff').length
+            ],
+            backgroundColor: ['#FFD700','#e53935','#1e88e5','#43a047','#212121'],
+            borderWidth: 2, borderColor: '#fff'
+        }]
+    };
+    if (chartCategory) { chartCategory.data = catData; chartCategory.update(); }
+    else chartCategory = new Chart(
+        document.getElementById('categoryChart').getContext('2d'),
+        { type: 'doughnut', data: catData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '60%' } }
+    );
+
+    // Status bar
+    const stData = {
+        labels: ['Pending','Approved','Rejected','Checked In'],
+        datasets: [{ data: [
+            r.filter(x => x.status === 'pending').length,
+            r.filter(x => x.status === 'approved').length,
+            r.filter(x => x.status === 'rejected').length,
+            r.filter(x => x.status === 'checked-in').length
+        ], backgroundColor: ['#ff9800','#43a047','#e53935','#1e88e5'], borderRadius: 8 }]
+    };
+    if (chartStatus) { chartStatus.data = stData; chartStatus.update(); }
+    else chartStatus = new Chart(
+        document.getElementById('statusChart').getContext('2d'),
+        { type: 'bar', data: stData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }
+    );
+
+    // Time line
+    const dayCounts = {};
+    r.forEach(reg => {
+        if (!reg.timestamp) return;
+        const date = reg.timestamp.toDate ? reg.timestamp.toDate() : new Date(reg.timestamp.seconds * 1000);
+        const day = date.toLocaleDateString();
+        dayCounts[day] = (dayCounts[day] || 0) + 1;
+    });
+    const sortedDays = Object.keys(dayCounts).sort((a,b) => new Date(a) - new Date(b));
+    const timeData = {
+        labels: sortedDays,
+        datasets: [{ label: 'Registrations', data: sortedDays.map(d => dayCounts[d]),
+            borderColor: '#1b5e20', backgroundColor: 'rgba(27,94,32,0.1)',
+            fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#43a047' }]
+    };
+    if (chartTime) { chartTime.data = timeData; chartTime.update(); }
+    else chartTime = new Chart(
+        document.getElementById('timeChart').getContext('2d'),
+        { type: 'line', data: timeData, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }
+    );
 }
 
 function renderTable() {
-    const search   = (document.getElementById('searchInput')?.value || '').toLowerCase();
-    const catFilter= document.getElementById('filterCategory')?.value || '';
-    const stFilter = document.getElementById('filterStatus')?.value || '';
+    const search    = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const catFilter = document.getElementById('filterCategory')?.value || '';
+    const stFilter  = document.getElementById('filterStatus')?.value || '';
 
-    const filtered = allRegistrations.filter(r => {
+    let filtered = allRegistrations.filter(r => {
         const matchSearch = !search ||
             (r.name||'').toLowerCase().includes(search) ||
             (r.email||'').toLowerCase().includes(search) ||
@@ -275,69 +469,125 @@ function renderTable() {
         return matchSearch && matchCat && matchSt;
     });
 
+    // Sorting
+    if (sortField) {
+        filtered.sort((a, b) => {
+            let av = a[sortField] || '';
+            let bv = b[sortField] || '';
+            if (sortField === 'timestamp') {
+                av = a.timestamp?.seconds || 0;
+                bv = b.timestamp?.seconds || 0;
+            }
+            if (av < bv) return sortAsc ? -1 : 1;
+            if (av > bv) return sortAsc ? 1 : -1;
+            return 0;
+        });
+    }
+
+    // Pagination
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * rowsPerPage;
+    const paginated = filtered.slice(start, start + rowsPerPage);
+
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn  = document.getElementById('prevBtn');
+    const nextBtn  = document.getElementById('nextBtn');
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages} (${total} total)`;
+    if (prevBtn)  prevBtn.disabled  = currentPage === 1;
+    if (nextBtn)  nextBtn.disabled  = currentPage === totalPages;
+
     const tbody = document.getElementById('regBody');
     const empty = document.getElementById('emptyMsg');
-    tbody.innerHTML = '';
 
-    if (!filtered.length) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
+    // Smooth fade transition
+    tbody.style.opacity = '0';
+    setTimeout(() => {
+        tbody.innerHTML = '';
 
-    const categories = ['VVIP','VIP','Delegate','Media','Staff'];
+        if (!paginated.length) {
+            empty.style.display = 'block';
+            tbody.style.opacity = '1';
+            return;
+        }
+        empty.style.display = 'none';
 
-    filtered.forEach(reg => {
-        const timestamp = reg.timestamp?.seconds
-            ? new Date(reg.timestamp.seconds * 1000).toLocaleString()
-            : '—';
+        const categories = ['VVIP','VIP','Delegate','Media','Staff'];
 
-        const tr = document.createElement('tr');
-        tr.style.cursor = 'pointer';
-        tr.innerHTML = `
-            <td><strong>${reg.name || ''}</strong><br><small style="color:#888">${reg.email || ''}</small></td>
-            <td>${reg.phone || '—'}</td>
-            <td>${reg.organization || ''}</td>
-            <td>${reg.designation || '—'}</td>
-            <td>${reg.county || '—'}</td>
-            <td>
-                <select class="cat-select" data-id="${reg.id}">
-                    ${categories.map(c => `<option${c===reg.category?' selected':''}>${c}</option>`).join('')}
-                </select>
-            </td>
-            <td><span class="status-badge status-${reg.status}">${reg.status}</span></td>
-            <td style="font-size:0.8rem;color:#666">${timestamp}</td>
-            <td class="action-btns">
-                <button class="btn-approve" onclick="updateRegistration('${reg.id}',{status:'approved'})">Approve</button>
-                <button class="btn-reject"  onclick="updateRegistration('${reg.id}',{status:'rejected'})">Reject</button>
-            </td>`;
+        paginated.forEach(reg => {
+            const timestamp = reg.timestamp?.seconds
+                ? new Date(reg.timestamp.seconds * 1000).toLocaleString()
+                : '—';
 
-        // Expandable detail row
-        const detailRow = document.createElement('tr');
-        detailRow.className = 'detail-row';
-        detailRow.style.display = 'none';
-        const accessibility = reg.accessibilityNeeds?.length ? reg.accessibilityNeeds.join(', ') : 'None';
-        detailRow.innerHTML = `
-            <td colspan="9" class="detail-cell">
-                <strong>ID/Passport:</strong> ${reg.idNumber || '—'} &nbsp;|
-                <strong> Email:</strong> ${reg.email || '—'} &nbsp;|
-                <strong> Accessibility:</strong> ${accessibility} &nbsp;|
-                <strong> Special Requests:</strong> ${reg.specialRequests || 'None'}
-            </td>`;
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            if (selectedIds.has(reg.id)) tr.classList.add('row-selected');
 
-        tr.addEventListener('click', e => {
-            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') return;
-            detailRow.style.display = detailRow.style.display === 'none' ? 'table-row' : 'none';
+            tr.innerHTML = `
+                <td><input type="checkbox" class="rowCheck" data-id="${reg.id}" ${selectedIds.has(reg.id) ? 'checked' : ''}></td>
+                <td><strong>${reg.name || ''}</strong><br><small style="color:#888">${reg.email || ''}</small></td>
+                <td>${reg.phone || '—'}</td>
+                <td>${reg.organization || ''}</td>
+                <td>${reg.designation || '—'}</td>
+                <td>${reg.county || '—'}</td>
+                <td>
+                    <select class="cat-select" data-id="${reg.id}">
+                        ${categories.map(c => `<option${c===reg.category?' selected':''}>${c}</option>`).join('')}
+                    </select>
+                </td>
+                <td><span class="status-badge status-${reg.status}">${reg.status}</span></td>
+                <td style="font-size:0.8rem;color:#666">${timestamp}</td>
+                <td class="action-btns">
+                    <button class="btn-approve" onclick="addRipple(event);updateRegistration('${reg.id}',{status:'approved'})">Approve</button>
+                    <button class="btn-reject"  onclick="addRipple(event);updateRegistration('${reg.id}',{status:'rejected'})">Reject</button>
+                </td>`;
+
+            // Expandable detail row
+            const detailRow = document.createElement('tr');
+            detailRow.className = 'detail-row';
+            detailRow.style.display = 'none';
+            const accessibility = reg.accessibilityNeeds?.length ? reg.accessibilityNeeds.join(', ') : 'None';
+            detailRow.innerHTML = `
+                <td colspan="10" class="detail-cell">
+                    <strong>ID/Passport:</strong> ${reg.idNumber || '—'} &nbsp;|
+                    <strong> Email:</strong> ${reg.email || '—'} &nbsp;|
+                    <strong> Accessibility:</strong> ${accessibility} &nbsp;|
+                    <strong> Special Requests:</strong> ${reg.specialRequests || 'None'}
+                </td>`;
+
+            tr.addEventListener('click', e => {
+                if (['BUTTON','SELECT','INPUT'].includes(e.target.tagName)) return;
+                detailRow.style.display = detailRow.style.display === 'none' ? 'table-row' : 'none';
+            });
+
+            tbody.appendChild(tr);
+            tbody.appendChild(detailRow);
         });
 
-        tbody.appendChild(tr);
-        tbody.appendChild(detailRow);
-    });
-
-    // Category change handler
-    tbody.querySelectorAll('.cat-select').forEach(sel => {
-        sel.addEventListener('change', e => {
-            updateRegistration(e.target.dataset.id, { category: e.target.value });
+        // Checkbox change handler
+        tbody.querySelectorAll('.rowCheck').forEach(cb => {
+            cb.addEventListener('change', e => {
+                const id = e.target.dataset.id;
+                if (e.target.checked) { selectedIds.add(id); e.target.closest('tr').classList.add('row-selected'); }
+                else { selectedIds.delete(id); e.target.closest('tr').classList.remove('row-selected'); }
+                updateSelectedCount();
+            });
         });
-    });
+
+        // Category change handler
+        tbody.querySelectorAll('.cat-select').forEach(sel => {
+            sel.addEventListener('change', e => {
+                updateRegistration(e.target.dataset.id, { category: e.target.value });
+            });
+        });
+
+        tbody.style.opacity = '1';
+    }, 150);
 }
+
+function nextPage() { currentPage++; renderTable(); }
+function prevPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
 
 async function updateRegistration(id, updates) {
     try {
@@ -347,18 +597,22 @@ async function updateRegistration(id, updates) {
         if (updates.status === 'approved') {
             const reg = allRegistrations.find(r => r.id === id);
             if (reg) {
-                await sendConfirmationEmail({
+                showToast('Sending QR code email…', 'info');
+                const sent = await sendConfirmationEmail({
                     name:           reg.name,
                     email:          reg.email,
                     registrationId: reg.id,
                     category:       reg.category,
                     organization:   reg.organization
                 });
+                showToast(sent ? 'QR code sent to ' + reg.email : 'Approval saved but email failed', sent ? 'success' : 'warning');
             }
+        } else if (updates.status === 'rejected') {
+            showToast('Registration rejected', 'warning');
         }
     } catch (err) {
         console.error('Update failed:', err);
-        alert('Update failed: ' + err.message);
+        showToast('Update failed: ' + err.message, 'error');
     }
 }
 
